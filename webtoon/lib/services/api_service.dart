@@ -2,16 +2,19 @@ import 'dart:convert';
 
 // http 패키지 다운로드.
 import 'package:http/http.dart' as http;
+import 'package:webtoon/models/webtoon_detail_model.dart';
 import 'package:webtoon/models/webtoon_model.dart';
+import 'package:webtoon/models/webtton_episode_model.dart';
 
 class ApiService {
   // 데이터가 저장되어 있는 url
-  final String baseUrl = "https://webtoon-crawler.nomadcoders.workers.dev";
-  final String today = "today";
+  static const String baseUrl =
+      "https://webtoon-crawler.nomadcoders.workers.dev";
+  static const String today = "today";
 
   // Future = http.get이 반환하는 데이터 타입. 당장 완료될 수 있는 작업이 아니라는 것을 뜻함.
   // async await = 비동기. 데이터 값이 들어올 때까지 기다린다는 뜻.
-  Future<List<WebtoonModel>> getTodaysToons() async {
+  static Future<List<WebtoonModel>> getTodaysToons() async {
     // 웹툰 정보를 저장 할 리스트 생성
     List<WebtoonModel> webtoonsInstances = [];
 
@@ -30,6 +33,34 @@ class ApiService {
       }
 
       return webtoonsInstances;
+    }
+
+    throw Error();
+  }
+
+  static Future<WebtoonDetailModel> getToonById(String id) async {
+    final url = Uri.parse("$baseUrl/$id");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final webtoon = jsonDecode(response.body);
+
+      return WebtoonDetailModel.fromJson(webtoon);
+    }
+
+    throw Error();
+  }
+
+  static Future<List<WebtoonEpisodeModel>> getLatestEpisodesById(
+      String id) async {
+    List<WebtoonEpisodeModel> episodesInstances = [];
+    final url = Uri.parse("$baseUrl/$id/episodes");
+    final response = await http.get(url);
+    if (response.statusCode == 200) {
+      final episodes = jsonDecode(response.body);
+      for (var episode in episodes) {
+        episodesInstances.add(WebtoonEpisodeModel.fromJson(episode));
+      }
+      return episodesInstances;
     }
 
     throw Error();
